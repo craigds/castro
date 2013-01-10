@@ -14,7 +14,7 @@ from lib.pyvnc2swf import vnc2swf
 DATA_DIR = os.environ.get('CASTRO_DATA_DIR', None) or tempfile.gettempdir()
 
 
-class Castro:
+class Castro(object):
     def __init__(self,
                  filename="castro-video.swf",
                  host="localhost",
@@ -141,7 +141,7 @@ class Castro:
 
 
 # To be used with a "with" statement
-class video:
+class video(object):
     def __init__(self, *args, **kwargs):
         self.recorder = Castro(*args, **kwargs)
 
