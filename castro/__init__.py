@@ -110,7 +110,7 @@ class Castro(object):
             '-g', str(self.framerate),
             self.tempfilepath,
         ]
-        subprocess.check_call(p_args)
+        subprocess.check_call(p_args, stdout=open('/dev/null', 'w'), stderr=open('/dev/null', 'w'))
 
     def calc_duration(self):
         if not self.quiet:
