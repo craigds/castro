@@ -97,17 +97,15 @@ class Castro(object):
         The tip for adding the "-g" flag: http://www.infinitecube.com/?p=9
         """
         if subprocess.call(['which', 'avconv']):
-            bin = 'ffmpeg'
+            p_args = ['ffmpeg', '-v', '0']
         else:
-            bin = 'avconv'
+            p_args = ['avconv', '-loglevel', 'panic']
 
         if not self.quiet:
-            print "Running %s: creating keyframes" % bin
+            print "Running %s: creating keyframes" % p_args[0]
 
-        p_args = [
-            bin,
+        p_args += [
             '-y',
-            '-loglevel', 'panic',
             '-i', self.filepath,
             '-g', str(self.framerate),
             self.tempfilepath,
