@@ -1,6 +1,7 @@
 import os
 import tempfile
 from datetime import datetime, timedelta
+import subprocess
 from sys import stdout
 from time import sleep
 
@@ -97,11 +98,17 @@ class Castro(object):
         """
 
         if not self.quiet:
-            print "Running ffmpeg: creating keyframes"
-        os.system("ffmpeg -y -i %s -g %s -sameq %s" %
-          (self.filepath,
-           self.framerate,
-           self.tempfilepath))
+            print "Running avconv: creating keyframes"
+
+        p_args = [
+            'avconv',
+            '-y',
+            '-loglevel', 'panic',
+            '-i', self.filepath,
+            '-g', str(self.framerate),
+            self.tempfilepath,
+        ]
+        subprocess.check_call(p_args)
 
     def calc_duration(self):
         if not self.quiet:

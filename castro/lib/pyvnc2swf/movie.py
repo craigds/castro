@@ -43,7 +43,7 @@ class SWFInfo:
   in a SWF file. The values of this object are changed
   as parsing goes on.
   """
-  
+
   def __init__(self, filename=None):
     self.filename = filename
     self.compression = None
@@ -74,7 +74,7 @@ class SWFInfo:
       print >>stderr, 'Warning: movie size already set: %dx%d' % (self.width, self.height)
     elif self.width == None:
       (self.width, self.height) = (w0,h0)
-      print >>stderr, 'Output movie size: %dx%d' % (self.width, self.height)
+      #print >>stderr, 'Output movie size: %dx%d' % (self.width, self.height)
     if not self.framerate:
       self.framerate = 12.0
     if not self.blocksize:
@@ -88,7 +88,7 @@ class SWFInfo:
   def set_framerate(self, framerate):
     if self.framerate != None and self.framerate != framerate:
       print >>stderr, 'Warning: movie framerate is overridden.'
-      return      
+      return
     self.framerate = float(framerate)
     return
 
@@ -139,15 +139,15 @@ class SWFInfo:
     out.close()
     return
 
-  
+
 ##  MovieContainer
 ##
 class MovieContainer:
-  
+
   """
   MovieContainer holds all frame images of a movie.
   """
-  
+
   def __init__(self, info):
     self.info = info
     self.nframes = 0
@@ -163,7 +163,7 @@ class MovieContainer:
         break
       i -= n
     return (images, othertags, cursor_info)
-  
+
   def parse_vnc2swf(self, fname, read_mp3=False, debug=0):
     parser = VNC2SWF_Parser(self, read_mp3, debug=debug)
     parser.open(fname)
@@ -234,20 +234,20 @@ class VNC2SWF_Parser(SWFParser):
     data = self.read(length)
     self.othertags.append((tag, data))
     return
-  
+
   def do_tag1(self, tag, length):
     # ShowFrame
     if self.debug:
       print >>stderr, 'ShowFrame'
     return
-  
+
   def do_tag9(self, tag, length):
     # SetBackgroundColor
     bgcolor = self.readrgb()
     if self.debug:
       print >>stderr, 'BGColor:', bgcolor
     return
-  
+
   def do_tag20(self, tag, length):
     # DefineBitsLossless
     cid = self.readui16()
@@ -267,7 +267,7 @@ class VNC2SWF_Parser(SWFParser):
     return
   # DefineBitsLossless2
   do_tag36 = do_tag20
-  
+
   def do_tag32(self, tag, length):
     # DefineShape3
     sid = self.readui16()
@@ -320,7 +320,7 @@ class VNC2SWF_Parser(SWFParser):
         self.images.append(((transx/20, transy/20), data))
         self.shape1 = None
     return
-  
+
   def do_tag28(self, tag, length):
     # RemoveObject2
     depth = self.readui16()
@@ -346,7 +346,7 @@ class VNC2SWF_Parser(SWFParser):
     return
   def do_tag60(self, tag, length):
     return
-  
+
   def do_tag61(self, tag, length):
     # VideoFrame
     stream_id = self.readui16()
@@ -377,7 +377,7 @@ class VNC2SWF_Parser(SWFParser):
             y0 = 0
           self.images.append( ((x0,y0), (w,h,(IMG_VIDEOPACKET,data))) )
     return
-  
+
   def scan_tag18(self, tag, length):
     # SoundStreamHead
     if not self.read_mp3: return
@@ -404,7 +404,7 @@ class VNC2SWF_Parser(SWFParser):
     return
   def do_tag18(self, tag, length):
     return
-  
+
   def scan_tag19(self, tag, length):
     # SoundStreamBlock
     if not self.read_mp3: return
@@ -416,7 +416,7 @@ class VNC2SWF_Parser(SWFParser):
     return
   def do_tag19(self, tag, length):
     return
-  
+
 
 ##  FLVMovieParser
 ##

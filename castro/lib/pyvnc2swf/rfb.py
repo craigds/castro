@@ -64,7 +64,7 @@ class RFBFrameBuffer:
   def process_pixels(self, x, y, width, height, data):
     #print >>stderr, 'process_pixels: %dx%d at (%d,%d)' % (width,height,x,y)
     raise NotImplementedError
-  
+
   def process_solid(self, x, y, width, height, data):
     #print >>stderr, 'process_solid: %dx%d at (%d,%d), color=%r' % (width,height,x,y, color)
     raise NotImplementedError
@@ -81,10 +81,10 @@ class RFBFrameBuffer:
   def move_cursor(self, x, y):
     #print >>stderr, 'move_cursor'
     raise NotImplementedError
- 
+
   def close(self):
     return
-  
+
 
 ##  RFBProxy
 ##
@@ -109,7 +109,7 @@ class RFBProxy:
       self.fb.set_converter(lambda data: data,
                             lambda data: unpack('BBBx', data))
     return self.FASTEST_FORMAT
-  
+
   def send(self, s):
     "Send data s to the server."
     raise NotImplementedError
@@ -127,7 +127,7 @@ class RFBProxy:
 
   def write(self, n):
     return
-  
+
   def request_update(self):
     "Send a request to the server."
     raise NotImplementedError
@@ -135,7 +135,7 @@ class RFBProxy:
     if self.fb:
       self.fb.update_screen(time.time())
     return
-  
+
   def init(self):
     # recv: server protocol version
     server_version = self.recv(12)
@@ -165,7 +165,7 @@ class RFBProxy:
         fp.close()
         p = decrypt_passwd(s)
       elif not self.pwdcache:
-        p = self.getpass()  
+        p = self.getpass()
       if not p:
         raise RFBError('Auth cancelled')
       # from pyvncviewer
@@ -271,7 +271,7 @@ class RFBProxy:
     for e in self.preferred_encoding:
       self.send(pack('>l', e))
     return self
-  
+
   def loop1(self):
     self.request_update()
     c = self.recv_byte_with_timeout()
@@ -501,7 +501,7 @@ class RFBProxy:
 ##  RFBNetworkClient
 ##
 class RFBNetworkClient(RFBProxy):
-  
+
   def __init__(self, host, port, fb=None, pwdfile=None,
                preferred_encoding=(0,5), debug=0):
     RFBProxy.__init__(self, fb=fb, pwdfile=pwdfile,
@@ -514,8 +514,9 @@ class RFBNetworkClient(RFBProxy):
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.sock.connect((self.host, self.port))
     x = RFBProxy.init(self)
-    print >>stderr, 'Connected: %s:%d, protocol_version=3.%d, preferred_encoding=%s' % \
-          (self.host, self.port, self.protocol_version, self.preferred_encoding)
+    if self.debug:
+      print >>stderr, 'Connected: %s:%d, protocol_version=3.%d, preferred_encoding=%s' % \
+            (self.host, self.port, self.protocol_version, self.preferred_encoding)
     return x
 
   def recv(self, n):
@@ -540,7 +541,7 @@ class RFBNetworkClient(RFBProxy):
 
   def send(self, s):
     return self.sock.send(s)
-    
+
   def getpass(self):
     import getpass
     return getpass.getpass('Password for %s:%d: ' % (self.host, self.port))
@@ -560,12 +561,13 @@ class RFBNetworkClient(RFBProxy):
 ##  RFBNetworkClientForRecording (vncrec equivalent)
 ##
 class RFBNetworkClientForRecording(RFBNetworkClient):
-  
+
   def __init__(self, host, port, fp, pwdfile=None,
                preferred_encoding=(5,0), debug=0):
     RFBNetworkClient.__init__(self, host, port, fb=None, pwdfile=pwdfile,
                               preferred_encoding=preferred_encoding, debug=debug)
-    print >>stderr, 'Creating vncrec: %r: vncLog0.0' % fp
+    if self.debug:
+      print >>stderr, 'Creating vncrec: %r: vncLog0.0' % fp
     self.fp = fp
     self.write('vncLog0.0')
     # disguise data (security=none)
@@ -585,11 +587,11 @@ class RFBNetworkClientForRecording(RFBNetworkClient):
       self.write(pack('>LL', int(t), int((t-int(t))*1000000)))
       RFBNetworkClient.request_update(self)
     return
-  
+
   def finish_update(self):
     self.updated = True
     return
-  
+
   def recv_relay(self, n):
     data = self.recv(n)
     self.write(data)
@@ -599,7 +601,7 @@ class RFBNetworkClientForRecording(RFBNetworkClient):
 ##  RFBFileParser
 ##
 class RFBFileParser(RFBProxy):
-  
+
   def __init__(self, fp, fb=None, debug=0):
     RFBProxy.__init__(self, fb=fb, debug=debug)
     if self.fb:
@@ -653,11 +655,12 @@ class RFBFileParser(RFBProxy):
   def init(self):
     self.curtime = 0
     version = self.fp.read(9)
-    print >>stderr, 'Reading vncrec file: %s, version=%r...' % (self.fp, version)
+    if self.debug:
+      print >>stderr, 'Reading vncrec file: %s, version=%r...' % (self.fp, version)
     if version != 'vncLog0.0':
       raise RFBProtocolError('Unsupported vncrec version: %r' % version)
     return RFBProxy.init(self)
-  
+
   def recv(self, n):
     x = self.fp.read(n)
     if len(x) != n:
@@ -687,7 +690,7 @@ class RFBFileParser(RFBProxy):
     (sec, usec) = unpack('>LL', self.recv(8))
     self.curtime = sec+usec/1000000.0
     return
-  
+
   def finish_update(self):
     if self.fb:
       self.fb.update_screen(self.curtime) # use the file time instead
@@ -717,7 +720,8 @@ class RFBConverter(RFBFrameBuffer):
     return
 
   def init_screen(self, width, height, name):
-    print >>stderr, 'VNC Screen: size=%dx%d, name=%r' % (width, height, name)
+    if self.debug:
+      print >>stderr, 'VNC Screen: size=%dx%d, name=%r' % (width, height, name)
     self.info.set_defaults(width, height)
     self.images = []
     self.cursor_image = None
@@ -728,9 +732,9 @@ class RFBConverter(RFBFrameBuffer):
   def process_pixels(self, x, y, width, height, data):
     self.images.append( ((x, y), (width, height, (IMG_RAW, self.convert_pixels(data)))) )
     return
-  
+
   def process_solid(self, x, y, width, height, data):
-    self.images.append( ((x, y), (width, height, (IMG_SOLID, self.convert_color1(data)))) ) 
+    self.images.append( ((x, y), (width, height, (IMG_SOLID, self.convert_color1(data)))) )
     return
 
   def move_cursor(self, x, y):
@@ -762,7 +766,7 @@ class RFBMovieConverter(RFBConverter):
     if self.processing:
       RFBConverter.process_pixels(self, x, y, width, height, data)
     return
-  
+
   def process_solid(self, x, y, width, height, data):
     if self.processing:
       RFBConverter.process_solid(self, x, y, width, height, data)
@@ -809,13 +813,13 @@ class RFBMovieConverter(RFBConverter):
 ##  RFBStreamConverter
 ##
 class RFBStreamConverter(RFBConverter):
-  
+
   def __init__(self, info, stream, debug=0):
     RFBConverter.__init__(self, info, debug)
     self.stream = stream
     self.stream_opened = False
     return
-  
+
   def init_screen(self, width, height, name):
     clipping = RFBConverter.init_screen(self, width, height, name)
     if not self.stream_opened:
@@ -823,7 +827,7 @@ class RFBStreamConverter(RFBConverter):
       self.stream_opened = True
     self.nframes = 0
     return clipping
-  
+
   def update_screen(self, t):
     frames = RFBConverter.calc_frames(self, t)
     if self.nframes < frames:
