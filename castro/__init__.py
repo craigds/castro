@@ -20,7 +20,8 @@ class Castro(object):
                  clipping=None,
                  port=None,
                  passwd=os.path.join(os.path.expanduser("~"), ".vnc", "passwd"),
-                 data_dir=None):
+                 data_dir=None,
+                 quiet=False):
         if data_dir is None:
             data_dir = os.environ.get('CASTRO_DATA_DIR', None) or tempfile.gettempdir()
         self.filename = filename
@@ -32,6 +33,7 @@ class Castro(object):
         self.clipping = clipping
         self.passwd = passwd
         self.port = port
+        self.quiet = quiet
 
         # Post-process data:
         self.duration = 0
@@ -94,21 +96,25 @@ class Castro(object):
         The tip for adding the "-g" flag: http://www.infinitecube.com/?p=9
         """
 
-        print "Running ffmpeg: creating keyframes"
+        if not self.quiet:
+            print "Running ffmpeg: creating keyframes"
         os.system("ffmpeg -y -i %s -g %s -sameq %s" %
           (self.filepath,
            self.framerate,
            self.tempfilepath))
 
     def calc_duration(self):
-        print "Getting Duration:"
+        if not self.quiet:
+            print "Getting Duration:"
         flv_data_raw = os.popen("flvtool2 -P %s" % self.tempfilepath).read()
         flv_data = yaml.load(flv_data_raw)
         self.duration = int(round(flv_data[flv_data.keys()[0]]['duration']))
-        print "Duration: %s" % self.duration
+        if not self.quiet:
+            print "Duration: %s" % self.duration
 
     def cuepoint(self):
-        print "\n\nCreating cuepoints:"
+        if not self.quiet:
+            print "\n\nCreating cuepoints:"
         # Create the cuepoints file
         cuefile = open(self.cuefilepath, 'w')
 
