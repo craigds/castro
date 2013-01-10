@@ -10,9 +10,6 @@ import yaml
 import lib.messageboard as mb
 from lib.pyvnc2swf import vnc2swf
 
-# Get directory for storing files:
-DATA_DIR = os.environ.get('CASTRO_DATA_DIR', None) or tempfile.gettempdir()
-
 
 class Castro(object):
     def __init__(self,
@@ -22,9 +19,13 @@ class Castro(object):
                  framerate=12,
                  clipping=None,
                  port=None,
-                 passwd=os.path.join(os.path.expanduser("~"), ".vnc", "passwd")):
+                 passwd=os.path.join(os.path.expanduser("~"), ".vnc", "passwd"),
+                 data_dir=None):
+        if data_dir is None:
+            data_dir = os.environ.get('CASTRO_DATA_DIR', None) or tempfile.gettempdir()
         self.filename = filename
-        self.filepath = os.path.join(DATA_DIR, self.filename)
+        self.data_dir = data_dir
+        self.filepath = os.path.join(data_dir, self.filename)
         self.host = host
         self.display = display
         self.framerate = framerate
@@ -34,8 +35,8 @@ class Castro(object):
 
         # Post-process data:
         self.duration = 0
-        self.tempfilepath = os.path.join(DATA_DIR, 'temp-' + self.filename)
-        self.cuefilepath = os.path.join(DATA_DIR, self.filename + "-cuepoints.xml")
+        self.tempfilepath = os.path.join(data_dir, 'temp-' + self.filename)
+        self.cuefilepath = os.path.join(data_dir, self.filename + "-cuepoints.xml")
 
         # Finally...
         self.init()
